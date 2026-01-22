@@ -34,4 +34,3 @@ export function buildFormData(data) {
 
   return formData
 }
-

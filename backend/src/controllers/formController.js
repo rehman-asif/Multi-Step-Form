@@ -1,7 +1,6 @@
 import { FormService } from "../services/formService.js";
 
 export class FormController {
-
   static create = async (req, res, next) => {
     try {
       const data = await FormService.createSubmission(req.body, req.files || []);

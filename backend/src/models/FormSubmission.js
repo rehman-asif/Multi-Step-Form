@@ -66,7 +66,6 @@ const formSubmissionSchema = new mongoose.Schema(
   },
 );
 
-formSubmissionSchema.index({ "contactInfo.email": 1 });
 formSubmissionSchema.index({ submittedAt: -1 });
 
 export default mongoose.model("FormSubmission", formSubmissionSchema);

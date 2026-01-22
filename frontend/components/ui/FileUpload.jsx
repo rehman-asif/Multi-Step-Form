@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { Toast } from '../Toast'
+import { getFileUrl, getFileName } from '../../utils/fileUtils'
 
 export function FileUpload({ label, error, onChange, files = [], maxFiles = 5 }) {
   const fileInputRef = useRef(null)
@@ -17,6 +18,10 @@ export function FileUpload({ label, error, onChange, files = [], maxFiles = 5 })
   const removeFile = (index) => {
     const newFiles = files.filter((_, i) => i !== index)
     onChange(newFiles)
+  }
+
+  const isExistingFile = (file) => {
+    return !(file instanceof File) && (file.path || file.filename)
   }
 
   return (
@@ -48,23 +53,41 @@ export function FileUpload({ label, error, onChange, files = [], maxFiles = 5 })
         </button>
         {files.length > 0 && (
           <div className="mt-2 space-y-2">
-            {files.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between bg-gray-100 p-2 rounded"
-              >
-                <span className="text-sm text-gray-700 truncate">
-                  {file.name || file.originalName || file.filename}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => removeFile(index)}
-                  className="text-red-600 hover:text-red-800 ml-2"
+            {files.map((file, index) => {
+              const fileUrl = getFileUrl(file)
+              const fileName = getFileName(file)
+              const existing = isExistingFile(file)
+
+              return (
+                <div
+                  key={index}
+                  className="flex items-center justify-between bg-gray-100 p-2 rounded"
                 >
-                  Remove
-                </button>
-              </div>
-            ))}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-sm text-gray-700 truncate">
+                      {fileName}
+                    </span>
+                    {existing && fileUrl && (
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:text-primary-800 text-sm underline whitespace-nowrap"
+                      >
+                        View
+                      </a>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="text-red-600 hover:text-red-800 ml-2"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )
+            })}
           </div>
         )}
         <p className="text-xs text-gray-500 mt-1">
@@ -75,5 +98,3 @@ export function FileUpload({ label, error, onChange, files = [], maxFiles = 5 })
     </div>
   )
 }
-
-

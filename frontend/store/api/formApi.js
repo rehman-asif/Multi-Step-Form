@@ -25,10 +25,6 @@ export const formApi = createApi({
       }),
       providesTags: ['FormSubmission'],
     }),
-    getSubmissionById: builder.query({
-      query: (id) => `/forms/${id}`,
-      providesTags: (result, error, id) => [{ type: 'FormSubmission', id }],
-    }),
     updateSubmission: builder.mutation({
       query: ({ id, formData }) => ({
         url: `/forms/${id}`,
@@ -53,7 +49,6 @@ export const formApi = createApi({
 export const {
   useCreateSubmissionMutation,
   useGetAllSubmissionsQuery,
-  useGetSubmissionByIdQuery,
   useUpdateSubmissionMutation,
   useDeleteSubmissionMutation,
 } = formApi
