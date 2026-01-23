@@ -1,26 +1,34 @@
-import multer from "multer";
-import fs from "fs";
-import path from "path";
+import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
 
-const uploadDir = "./uploads";
+const uploadDir = './uploads';
 
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, uploadDir),
   filename: (_, file, cb) =>
-    cb(null, Date.now() + path.extname(file.originalname)),
+    cb(null, `${Date.now()}-${Math.random().toString(36).substring(7)}${path.extname(file.originalname)}`),
 });
 
 const fileFilter = (_, file, cb) => {
-  if (
-    file.mimetype.startsWith("image/") ||
-    file.mimetype === "application/pdf" ||
-    file.mimetype.includes("word")
-  ) {
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Invalid file"));
+    cb(new Error('Invalid file type. Allowed: Images, PDF, DOC, DOCX'));
   }
 };
 
