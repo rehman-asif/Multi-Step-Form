@@ -2,8 +2,8 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata = {
-  title: 'Multi-Step Form Application',
-  description: 'Production-ready multi-step form with clean architecture',
+  title: 'Multi-Step Form',
+  description: 'Multi-step form application',
 }
 
 export default function RootLayout({ children }) {
@@ -15,5 +15,3 @@ export default function RootLayout({ children }) {
     </html>
   )
 }
-
-

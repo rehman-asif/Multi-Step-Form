@@ -1,14 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { formApi } from './api/formApi'
-import formSlice from './slices/formSlice'
+import formReducer from './slices/formSlice'
 
 export const store = configureStore({
   reducer: {
-    form: formSlice,
+    form: formReducer,
     [formApi.reducerPath]: formApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(formApi.middleware),
 })
-
-

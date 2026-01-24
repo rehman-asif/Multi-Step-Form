@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react'
+import { forwardRef } from 'react'
 
 export const Select = forwardRef(({ label, error, options, ...props }, ref) => {
   return (
@@ -14,7 +14,7 @@ export const Select = forwardRef(({ label, error, options, ...props }, ref) => {
         {...props}
       >
         <option value="">Select {label}</option>
-        {options && options.map((option) => (
+        {options?.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
@@ -26,4 +26,3 @@ export const Select = forwardRef(({ label, error, options, ...props }, ref) => {
 })
 
 Select.displayName = 'Select'
-

@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react'
+import { forwardRef } from 'react'
 
 export const Checkbox = forwardRef(({ label, error, ...props }, ref) => {
   return (
@@ -18,4 +18,3 @@ export const Checkbox = forwardRef(({ label, error, ...props }, ref) => {
 })
 
 Checkbox.displayName = 'Checkbox'
-

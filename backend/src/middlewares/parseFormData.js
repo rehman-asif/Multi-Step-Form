@@ -1,24 +1,15 @@
 export const parseFormData = (req, res, next) => {
-  if (!req.body || typeof req.body !== 'object') return next();
+  if (!req.body) return next();
 
-  const convert = (value) => {
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    if (value === '') return undefined;
-    return value;
-  };
+  for (const key in req.body) {
+    const value = req.body[key];
 
-  const traverse = (obj) => {
-    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+    if (value === "true") req.body[key] = true;
 
-    return Object.fromEntries(
-      Object.entries(obj).map(([key, val]) => [
-        key,
-        typeof val === 'object' ? traverse(val) : convert(val),
-      ])
-    );
-  };
+    else if (value === "false") req.body[key] = false;
 
-  req.body = traverse(req.body);
+    else if (value === "") req.body[key] = undefined;
+  }
+
   next();
 };

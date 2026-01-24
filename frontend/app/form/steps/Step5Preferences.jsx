@@ -5,21 +5,17 @@ import { useDispatch, useSelector } from 'react-redux'
 import { updateFormData, nextStep, previousStep } from '../../../store/slices/formSlice'
 import { Checkbox } from '../../../components/ui/Checkbox'
 import { Select } from '../../../components/ui/Select'
-import { getStepValidationRules } from '../../../utils/validation'
 
 export function Step5Preferences() {
   const dispatch = useDispatch()
-  const formData = useSelector((state) => state.form.formData)
+  const formData = useSelector(state => state.form.formData)
 
-  const { register, handleSubmit, formState: { errors }, watch } = useForm({
-    defaultValues: formData.preferences,
-    shouldUnregister: false,
-    mode: 'onSubmit',
-    reValidateMode: 'onSubmit',
+  // React Hook Form setup
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: formData.preferences || {},
   })
 
-  const validationRules = getStepValidationRules(5, watch)
-
+  // Submit handler
   const onSubmit = (data) => {
     dispatch(updateFormData({ step: 'preferences', data }))
     dispatch(nextStep())
@@ -27,16 +23,12 @@ export function Step5Preferences() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Checkbox
-        label="Subscribe to newsletter"
-        {...register('newsletter')}
-      />
 
-      <Checkbox
-        label="Enable notifications"
-        {...register('notifications')}
-      />
+      {/* Simple Checkboxes */}
+      <Checkbox label="Subscribe to newsletter" {...register('newsletter')} />
+      <Checkbox label="Enable notifications" {...register('notifications')} />
 
+      {/* Communication Method */}
       <Select
         label="Preferred Communication Method"
         {...register('communicationMethod')}
@@ -47,25 +39,30 @@ export function Step5Preferences() {
         ]}
       />
 
+      {/* Terms */}
       <Checkbox
         label="I accept the terms and conditions"
-        {...register('termsAccepted', validationRules.termsAccepted)}
+        {...register('termsAccepted', { required: 'You must accept terms' })}
         error={errors.termsAccepted?.message}
       />
 
-      <div className="flex justify-between mt-6">
+      {/* Navigation */}
+      <div className="flex justify-between mt-4">
         <button
           type="button"
           onClick={() => dispatch(previousStep())}
-          className="btn-secondary"
+          className="px-4 py-2 bg-gray-300 rounded"
         >
           Previous
         </button>
-        <button type="submit" className="btn-primary">
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
           Next
         </button>
       </div>
+
     </form>
   )
 }
-

@@ -4,21 +4,18 @@ import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateFormData, nextStep, previousStep } from '../../../store/slices/formSlice'
 import { Input } from '../../../components/ui/Input'
-import { getStepValidationRules } from '../../../utils/validation'
+import { getStepRules } from '../../../utils/validation'
 
 export function Step4FinancialInfo() {
   const dispatch = useDispatch()
-  const formData = useSelector((state) => state.form.formData)
+  const formData = useSelector(state => state.form.formData)
 
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
     defaultValues: formData.financialInfo,
-    shouldUnregister: false,
-    mode: 'onSubmit',
-    reValidateMode: 'onSubmit',
   })
 
+  const rules = getStepRules(4, watch)
   const loanStatus = watch('loanStatus')
-  const validationRules = getStepValidationRules(4, watch)
 
   const onSubmit = (data) => {
     dispatch(updateFormData({ step: 'financialInfo', data }))
@@ -27,61 +24,68 @@ export function Step4FinancialInfo() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="mb-4">
-        <label className="label-field">Do you have any existing loans?</label>
-        <div className="flex flex-wrap gap-4 mt-2">
-          {['Yes', 'No'].map((option) => (
-            <label key={option} className="flex items-center cursor-pointer">
+
+      {/* Loan Status */}
+      <div>
+        <label>Do you have any existing loans?</label>
+        <div className="flex gap-4 mt-1">
+          {['Yes', 'No'].map(option => (
+            <label key={option} className="flex items-center">
               <input
                 type="radio"
                 value={option}
-                {...register('loanStatus', validationRules.loanStatus)}
-                className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500"
+                {...register('loanStatus', rules.loanStatus)}
+                className="mr-2"
               />
-              <span className="text-gray-700">{option}</span>
+              {option}
             </label>
           ))}
         </div>
-        {errors.loanStatus && <p className="error-text">{errors.loanStatus.message}</p>}
+        {errors.loanStatus && <p className="text-red-500 text-sm">{errors.loanStatus.message}</p>}
       </div>
 
+      {/* Loan Amount if Yes */}
       {loanStatus === 'Yes' && (
         <Input
           label="Loan Amount"
           type="number"
           step="0.01"
-          {...register('loanAmount', validationRules.loanAmount)}
+          {...register('loanAmount', rules.loanAmount)}
           error={errors.loanAmount?.message}
         />
       )}
 
+      {/* Optional Fields */}
       <Input
         label="Credit Score (Optional)"
         type="number"
         min="300"
         max="850"
-        {...register('creditScore', validationRules.creditScore)}
+        {...register('creditScore', rules.creditScore)}
         error={errors.creditScore?.message}
       />
-
       <Input
         label="Bank Name (Optional)"
         {...register('bankName')}
       />
 
-      <div className="flex justify-between mt-6">
+      {/* Navigation Buttons */}
+      <div className="flex justify-between mt-4">
         <button
           type="button"
           onClick={() => dispatch(previousStep())}
-          className="btn-secondary"
+          className="px-4 py-2 bg-gray-300 rounded"
         >
           Previous
         </button>
-        <button type="submit" className="btn-primary">
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
           Next
         </button>
       </div>
+
     </form>
   )
 }
-

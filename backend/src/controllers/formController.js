@@ -3,7 +3,8 @@ import { FormService } from '../services/formService.js';
 export class FormController {
   static create = async (req, res, next) => {
     try {
-      const data = await FormService.createSubmission(req.body, req.files || []);
+      const files = req.files || []; 
+      const data = await FormService.createSubmission(req.body, files);
       res.status(201).json({ success: true, data });
     } catch (error) {
       next(error);
@@ -12,9 +13,11 @@ export class FormController {
 
   static getAll = async (req, res, next) => {
     try {
-      const page = +req.query.page || 1;
-      const limit = +req.query.limit || 10;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+
       const result = await FormService.getAllSubmissions(page, limit);
+
       res.json({ success: true, ...result });
     } catch (error) {
       next(error);
@@ -32,11 +35,8 @@ export class FormController {
 
   static update = async (req, res, next) => {
     try {
-      const data = await FormService.updateSubmission(
-        req.params.id,
-        req.body,
-        req.files || []
-      );
+      const files = req.files || [];
+      const data = await FormService.updateSubmission(req.params.id, req.body, files);
       res.json({ success: true, data });
     } catch (error) {
       next(error);
@@ -50,5 +50,5 @@ export class FormController {
     } catch (error) {
       next(error);
     }
-  }
+  };
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
@@ -8,79 +8,38 @@ import { previousStep, resetForm } from '../../../store/slices/formSlice'
 import { useCreateSubmissionMutation, useUpdateSubmissionMutation } from '../../../store/api/formApi'
 import { Input } from '../../../components/ui/Input'
 import { FileUpload } from '../../../components/ui/FileUpload'
-import { getStepValidationRules } from '../../../utils/validation'
 
 export function Step6ReviewSubmit() {
   const dispatch = useDispatch()
   const router = useRouter()
-  const { formData, editingId } = useSelector((state) => state.form)
+  const { formData, editingId } = useSelector(state => state.form)
+
+  const [files, setFiles] = useState(formData.documents || [])
+  const [submitError, setSubmitError] = useState(null)
+
   const [createSubmission, { isLoading: isCreating }] = useCreateSubmissionMutation()
   const [updateSubmission, { isLoading: isUpdating }] = useUpdateSubmissionMutation()
-  const [files, setFiles] = useState([])
-  const [submitError, setSubmitError] = useState(null)
   const isLoading = isCreating || isUpdating
-
-  useEffect(() => {
-    if (editingId && formData.documents && formData.documents.length > 0) {
-      setFiles(formData.documents)
-    }
-  }, [editingId, formData.documents])
 
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
     defaultValues: {
-      password: formData.password || '',
-      confirmPassword: formData.confirmPassword || '',
-    },
-    shouldUnregister: false,
-    mode: 'onSubmit',
-    reValidateMode: 'onSubmit',
+      password: '',
+      confirmPassword: ''
+    }
   })
 
-  const getValidationRules = () => {
-    const baseRules = getStepValidationRules(6, watch)
-    if (!editingId) return baseRules
-
-    return {
-      password: { ...baseRules.password, required: false },
-      confirmPassword: {
-        ...baseRules.confirmPassword,
-        required: false,
-        validate: (value, formValues) => {
-          if (!value && !formValues.password) return true
-          return value === formValues.password || 'Passwords do not match'
-        },
-      },
-    }
-  }
-
-  const validationRules = getValidationRules()
-
-  const onSubmit = async (passwordData) => {
+  const onSubmit = async ({ password, confirmPassword }) => {
     try {
       setSubmitError(null)
-      
-      const submissionData = { 
-        ...formData,
-        password: passwordData.password,
-        confirmPassword: passwordData.confirmPassword,
-      }
-      
+
+      // Merge form data with password if provided
+      const submissionData = { ...formData }
+      if (password) submissionData.password = password
+      if (password) submissionData.confirmPassword = confirmPassword
+
+      // Include new files only
       const newFiles = files.filter(file => file instanceof File)
-      if (newFiles.length > 0) {
-        submissionData.documents = newFiles
-      } else if (!editingId) {
-        submissionData.documents = []
-      }
-      
-      if (editingId) {
-        if (!submissionData.password) {
-          delete submissionData.password
-          delete submissionData.confirmPassword
-        }
-        if (newFiles.length === 0) {
-          delete submissionData.documents
-        }
-      }
+      if (newFiles.length) submissionData.documents = newFiles
 
       if (editingId) {
         await updateSubmission({ id: editingId, formData: submissionData }).unwrap()
@@ -89,52 +48,44 @@ export function Step6ReviewSubmit() {
         await createSubmission(submissionData).unwrap()
         router.push('/list?success=created')
       }
-      
+
       dispatch(resetForm())
     } catch (error) {
-      const errorMessage = error?.data?.message 
-        || error?.data?.errors?.[0]?.msg 
-        || error?.message 
-        || 'Failed to submit form. Please try again.'
-      setSubmitError(errorMessage)
+      setSubmitError(error?.data?.message || error?.message || 'Failed to submit form')
     }
+  }
+
+  const passwordsMatch = (value) => {
+    return value === watch('password') || 'Passwords do not match'
   }
 
   return (
     <div className="space-y-6">
-      <div className="bg-gray-50 p-6 rounded-lg space-y-4">
+
+      {/* Review Info */}
+      <div className="bg-gray-50 p-6 rounded-lg">
         <h2 className="text-xl font-semibold mb-4">Review Your Information</h2>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="font-medium">Name:</span>{' '}
-            {formData.userProfile.firstName} {formData.userProfile.lastName}
-          </div>
-          <div>
-            <span className="font-medium">Email:</span> {formData.contactInfo.email}
-          </div>
-          <div>
-            <span className="font-medium">Phone:</span> {formData.contactInfo.phone}
-          </div>
-          <div>
-            <span className="font-medium">Employment:</span>{' '}
-            {formData.employmentInfo.employmentStatus}
-          </div>
+          <div><span className="font-medium">Name:</span> {formData.userProfile.firstName} {formData.userProfile.lastName}</div>
+          <div><span className="font-medium">Email:</span> {formData.contactInfo.email}</div>
+          <div><span className="font-medium">Phone:</span> {formData.contactInfo.phone}</div>
+          <div><span className="font-medium">Employment:</span> {formData.employmentInfo.employmentStatus}</div>
         </div>
       </div>
 
+      {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <Input
-          label={editingId ? 'Password (Leave blank to keep current password)' : 'Password'}
-          type="password"
-          {...register('password', validationRules.password)}
-          error={errors.password?.message}
-        />
 
         <Input
-          label={editingId ? 'Confirm Password (Leave blank to keep current password)' : 'Confirm Password'}
+          label={editingId ? 'Password (Leave blank to keep current)' : 'Password'}
           type="password"
-          {...register('confirmPassword', validationRules.confirmPassword)}
+          {...register('password')}
+          error={errors.password?.message}
+        />
+        <Input
+          label={editingId ? 'Confirm Password' : 'Confirm Password'}
+          type="password"
+          {...register('confirmPassword', { validate: passwordsMatch })}
           error={errors.confirmPassword?.message}
         />
 
@@ -151,18 +102,18 @@ export function Step6ReviewSubmit() {
           </div>
         )}
 
-        <div className="flex justify-between mt-6">
+        <div className="flex justify-between mt-4">
           <button
             type="button"
             onClick={() => dispatch(previousStep())}
-            className="btn-secondary"
+            className="px-4 py-2 bg-gray-300 rounded"
             disabled={isLoading}
           >
             Previous
           </button>
           <button
             type="submit"
-            className="btn-primary"
+            className="px-4 py-2 bg-blue-500 text-white rounded"
             disabled={isLoading}
           >
             {isLoading ? 'Submitting...' : 'Submit'}

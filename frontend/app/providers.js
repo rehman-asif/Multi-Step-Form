@@ -6,5 +6,3 @@ import { store } from '../store/store'
 export function Providers({ children }) {
   return <Provider store={store}>{children}</Provider>
 }
-
-

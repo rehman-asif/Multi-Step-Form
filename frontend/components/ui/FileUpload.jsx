@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Toast } from '../Toast'
 import { getFileUrl, getFileName } from '../../utils/fileUtils'
 
-export function FileUpload({ label, error, onChange, files = [], maxFiles = 5 }) {
+export function FileUpload({ label, onChange, files = [], maxFiles = 5 }) {
   const fileInputRef = useRef(null)
   const [toast, setToast] = useState(null)
 
@@ -16,13 +16,10 @@ export function FileUpload({ label, error, onChange, files = [], maxFiles = 5 })
   }
 
   const removeFile = (index) => {
-    const newFiles = files.filter((_, i) => i !== index)
-    onChange(newFiles)
+    onChange(files.filter((_, i) => i !== index))
   }
 
-  const isExistingFile = (file) => {
-    return !(file instanceof File) && (file.path || file.filename)
-  }
+  const isServerFile = (file) => !(file instanceof File) && (file.path || file.filename)
 
   return (
     <div className="mb-4">
@@ -56,18 +53,13 @@ export function FileUpload({ label, error, onChange, files = [], maxFiles = 5 })
             {files.map((file, index) => {
               const fileUrl = getFileUrl(file)
               const fileName = getFileName(file)
-              const existing = isExistingFile(file)
+              const isExisting = isServerFile(file)
 
               return (
-                <div
-                  key={index}
-                  className="flex items-center justify-between bg-gray-100 p-2 rounded"
-                >
+                <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-sm text-gray-700 truncate">
-                      {fileName}
-                    </span>
-                    {existing && fileUrl && (
+                    <span className="text-sm text-gray-700 truncate">{fileName}</span>
+                    {isExisting && fileUrl && (
                       <a
                         href={fileUrl}
                         target="_blank"
@@ -94,7 +86,6 @@ export function FileUpload({ label, error, onChange, files = [], maxFiles = 5 })
           Maximum {maxFiles} files. Allowed: Images, PDF, DOC, DOCX (Max 5MB each)
         </p>
       </div>
-      {error && <p className="error-text">{error}</p>}
     </div>
   )
 }

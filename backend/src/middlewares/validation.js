@@ -1,48 +1,44 @@
 import Joi from 'joi';
 
-const baseFormSchema = {
+const baseFormSchema = Joi.object({
   userProfile: Joi.object({
     firstName: Joi.string().trim().required().messages({
-      'string.empty': 'First name is required',
       'any.required': 'First name is required',
+      'string.empty': 'First name is required',
     }),
     lastName: Joi.string().trim().required().messages({
-      'string.empty': 'Last name is required',
       'any.required': 'Last name is required',
+      'string.empty': 'Last name is required',
     }),
     dateOfBirth: Joi.date().iso().required().messages({
-      'date.base': 'Valid date of birth is required',
       'any.required': 'Date of birth is required',
+      'date.base': 'Enter a valid date',
     }),
     gender: Joi.string().valid('Male', 'Female', 'Other').required().messages({
-      'any.only': 'Valid gender is required',
+      'any.only': 'Select a valid gender',
       'any.required': 'Gender is required',
     }),
   }).required(),
 
   contactInfo: Joi.object({
     email: Joi.string().email().required().messages({
-      'string.email': 'Valid email is required',
+      'string.email': 'Enter a valid email',
       'any.required': 'Email is required',
     }),
     phone: Joi.string().trim().required().messages({
-      'string.empty': 'Phone is required',
       'any.required': 'Phone is required',
+      'string.empty': 'Phone is required',
     }),
     address: Joi.string().trim().required().messages({
-      'string.empty': 'Address is required',
       'any.required': 'Address is required',
     }),
     city: Joi.string().trim().required().messages({
-      'string.empty': 'City is required',
       'any.required': 'City is required',
     }),
     state: Joi.string().trim().required().messages({
-      'string.empty': 'State is required',
       'any.required': 'State is required',
     }),
     zipCode: Joi.string().trim().required().messages({
-      'string.empty': 'Zip code is required',
       'any.required': 'Zip code is required',
     }),
   }).required(),
@@ -52,13 +48,12 @@ const baseFormSchema = {
       .valid('Employed', 'Unemployed', 'Self-Employed', 'Student')
       .required()
       .messages({
-        'any.only': 'Valid employment status is required',
+        'any.only': 'Select a valid employment status',
         'any.required': 'Employment status is required',
       }),
     companyName: Joi.string().trim().when('employmentStatus', {
       is: 'Employed',
       then: Joi.required().messages({
-        'string.empty': 'Company name is required when employed',
         'any.required': 'Company name is required when employed',
       }),
       otherwise: Joi.optional().allow(''),
@@ -74,7 +69,7 @@ const baseFormSchema = {
     }),
     loanAmount: Joi.number().when('loanStatus', {
       is: 'Yes',
-      then: Joi.required().min(1).messages({
+      then: Joi.number().min(1).required().messages({
         'number.base': 'Loan amount must be a number',
         'number.min': 'Loan amount must be greater than 0',
         'any.required': 'Loan amount is required when loan status is Yes',
@@ -93,14 +88,13 @@ const baseFormSchema = {
     notifications: Joi.boolean().default(false),
     communicationMethod: Joi.string().valid('Email', 'Phone', 'SMS').default('Email'),
     termsAccepted: Joi.boolean().valid(true).required().messages({
-      'any.only': 'Terms must be accepted',
+      'any.only': 'You must accept the terms',
       'any.required': 'Terms must be accepted',
     }),
   }).required(),
-};
+});
 
-const createFormSchema = Joi.object({
-  ...baseFormSchema,
+const createFormSchema = baseFormSchema.keys({
   password: Joi.string().min(6).required().messages({
     'string.min': 'Password must be at least 6 characters',
     'any.required': 'Password is required',
@@ -111,8 +105,7 @@ const createFormSchema = Joi.object({
   }),
 });
 
-const updateFormSchema = Joi.object({
-  ...baseFormSchema,
+const updateFormSchema = baseFormSchema.keys({
   password: Joi.string().min(6).optional().allow('').messages({
     'string.min': 'Password must be at least 6 characters',
   }),
@@ -129,15 +122,16 @@ const updateFormSchema = Joi.object({
 
 export const validateForm = (req, res, next) => {
   const schema = req.method === 'PUT' ? updateFormSchema : createFormSchema;
+
   const { error, value } = schema.validate(req.body, {
     abortEarly: false,
     stripUnknown: true,
   });
 
   if (error) {
-    const errors = error.details.map((detail) => ({
-      field: detail.path.join('.'),
-      msg: detail.message,
+    const errors = error.details.map((d) => ({
+      field: d.path.join('.'),
+      msg: d.message,
     }));
 
     return res.status(400).json({

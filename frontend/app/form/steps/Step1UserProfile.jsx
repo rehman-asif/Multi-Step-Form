@@ -4,71 +4,72 @@ import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateFormData, nextStep } from '../../../store/slices/formSlice'
 import { Input } from '../../../components/ui/Input'
-import { getStepValidationRules } from '../../../utils/validation'
+import { getStepRules } from '../../../utils/validation'
 
 export function Step1UserProfile() {
   const dispatch = useDispatch()
-  const formData = useSelector((state) => state.form.formData)
+  const formData = useSelector(state => state.form.formData)
 
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
     defaultValues: formData.userProfile,
-    shouldUnregister: false,
-    mode: 'onSubmit',
-    reValidateMode: 'onSubmit',
   })
 
-  const validationRules = getStepValidationRules(1, watch)
+  const rules = getStepRules(1, watch)
 
   const onSubmit = (data) => {
+    // Save data in Redux and move to next step
     dispatch(updateFormData({ step: 'userProfile', data }))
     dispatch(nextStep())
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
       <Input
         label="First Name"
-        {...register('firstName', validationRules.firstName)}
+        {...register('firstName', rules.firstName)}
         error={errors.firstName?.message}
       />
 
+      {/* Last Name */}
       <Input
         label="Last Name"
-        {...register('lastName', validationRules.lastName)}
+        {...register('lastName', rules.lastName)}
         error={errors.lastName?.message}
       />
 
+      {/* Date of Birth */}
       <Input
         label="Date of Birth"
         type="date"
-        {...register('dateOfBirth', validationRules.dateOfBirth)}
+        {...register('dateOfBirth', rules.dateOfBirth)}
         error={errors.dateOfBirth?.message}
       />
 
-      <div className="mb-4">
-        <label className="label-field">Gender</label>
-        <div className="flex flex-wrap gap-4 mt-2">
-          {['Male', 'Female', 'Other'].map((option) => (
-            <label key={option} className="flex items-center cursor-pointer">
+      {/* Gender */}
+      <div>
+        <label>Gender</label>
+        <div className="flex gap-4 mt-1">
+          {['Male', 'Female', 'Other'].map(gender => (
+            <label key={gender} className="flex items-center">
               <input
                 type="radio"
-                value={option}
-                {...register('gender', validationRules.gender)}
-                className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500"
+                value={gender}
+                {...register('gender', rules.gender)}
+                className="mr-2"
               />
-              <span className="text-gray-700">{option}</span>
+              {gender}
             </label>
           ))}
         </div>
-        {errors.gender && <p className="error-text">{errors.gender.message}</p>}
+        {errors.gender && <p className="text-red-500 text-sm">{errors.gender.message}</p>}
       </div>
 
-      <div className="flex justify-end mt-6">
-        <button type="submit" className="btn-primary">
-          Next
-        </button>
-      </div>
+      {/* Submit Button */}
+      <button type="submit" className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
+        Next
+      </button>
+
     </form>
   )
 }
-

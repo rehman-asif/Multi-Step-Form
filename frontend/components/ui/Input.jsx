@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react'
+import { forwardRef } from 'react'
 
 export const Input = forwardRef(({ label, error, ...props }, ref) => {
   return (
@@ -19,4 +19,3 @@ export const Input = forwardRef(({ label, error, ...props }, ref) => {
 })
 
 Input.displayName = 'Input'
-

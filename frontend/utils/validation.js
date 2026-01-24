@@ -1,93 +1,31 @@
-export const validationRules = {
-  userProfile: {
-    firstName: {
-      required: 'First name is required',
-      minLength: {
-        value: 2,
-        message: 'First name must be at least 2 characters'
-      },
-    },
-    lastName: {
-      required: 'Last name is required',
-      minLength: {
-        value: 2,
-        message: 'Last name must be at least 2 characters'
-      },
-    },
-    dateOfBirth: {
-      required: 'Date of birth is required',
-      validate: (value) => {
-        if (!value) {
-          return 'Date of birth is required'
-        }
-        const date = new Date(value)
-        if (isNaN(date.getTime())) {
-          return 'Please enter a valid date'
-        }
-        return true
-      },
-    },
-    gender: {
-      required: 'Gender is required',
-    },
+export const stepRules = {
+  1: {
+    firstName: { required: 'First name is required', minLength: { value: 2, message: 'Must be at least 2 characters' } },
+    lastName: { required: 'Last name is required', minLength: { value: 2, message: 'Must be at least 2 characters' } },
+    dateOfBirth: { required: 'Date of birth is required' },
+    gender: { required: 'Gender is required' },
   },
-  contactInfo: {
-    email: {
-      required: 'Email is required',
-      pattern: {
-        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-        message: 'Invalid email address',
-      },
-    },
-    phone: {
-      required: 'Phone number is required',
-      pattern: {
-        value: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
-        message: 'Invalid phone number',
-      },
-    },
-    address: {
-      required: 'Address is required',
-    },
-    city: {
-      required: 'City is required',
-    },
-    state: {
-      required: 'State is required',
-    },
-    zipCode: {
-      required: 'Zip code is required',
-      pattern: {
-        value: /^\d{5}(-\d{4})?$/,
-        message: 'Invalid zip code',
-      },
-    },
+  2: {
+    email: { required: 'Email is required', pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Invalid email' } },
+    phone: { required: 'Phone is required' },
+    address: { required: 'Address is required' },
+    city: { required: 'City is required' },
+    state: { required: 'State is required' },
+    zipCode: { required: 'Zip code is required', pattern: { value: /^\d{5}(-\d{4})?$/, message: 'Invalid zip code' } },
   },
-  employmentInfo: {
-    employmentStatus: {
-      required: 'Employment status is required',
-    },
+  3: {
+    employmentStatus: { required: 'Employment status is required' },
     companyName: {
       validate: (value, formValues) => {
-        if (formValues.employmentStatus === 'Employed' && !value) {
+        if (formValues.employmentStatus === 'Employed' && !value?.trim()) {
           return 'Company name is required when employed'
         }
         return true
       },
     },
-    monthlyIncome: {
-      validate: (value) => {
-        if (value && (isNaN(value) || parseFloat(value) < 0)) {
-          return 'Monthly income must be a positive number'
-        }
-        return true
-      },
-    },
   },
-  financialInfo: {
-    loanStatus: {
-      required: 'Loan status is required',
-    },
+  4: {
+    loanStatus: { required: 'Loan status is required' },
     loanAmount: {
       validate: (value, formValues) => {
         if (formValues.loanStatus === 'Yes' && (!value || isNaN(value) || parseFloat(value) <= 0)) {
@@ -105,51 +43,40 @@ export const validationRules = {
       },
     },
   },
-  preferences: {
+  5: {
     termsAccepted: {
-      validate: (value) => {
-        if (!value || value === false) {
-          return 'You must accept the terms and conditions'
-        }
-        return true
-      },
+      validate: (value) => value === true || 'You must accept the terms',
     },
   },
-  password: {
-    required: 'Password is required',
-    minLength: {
-      value: 6,
-      message: 'Password must be at least 6 characters',
-    },
-  },
-  confirmPassword: {
-    required: 'Please confirm your password',
-    validate: (value, formValues) => {
-      if (value !== formValues.password) {
-        return 'Passwords do not match'
-      }
-      return true
+  6: {
+    password: { required: 'Password is required', minLength: { value: 6, message: 'Must be at least 6 characters' } },
+    confirmPassword: {
+      required: 'Please confirm your password',
+      validate: (value, formValues) => value === formValues.password || 'Passwords do not match',
     },
   },
 }
 
-export const getStepValidationRules = (step, watch) => {
-  const stepRules = {
-    1: validationRules.userProfile,
-    2: validationRules.contactInfo,
-    3: {
-      ...validationRules.employmentInfo,
+export function getStepRules(step, watch) {
+  const rules = stepRules[step] || {}
+  
+  if (step === 3) {
+    return {
+      ...rules,
       companyName: {
         validate: (value) => {
-          if (watch('employmentStatus') === 'Employed' && !value) {
+          if (watch('employmentStatus') === 'Employed' && !value?.trim()) {
             return 'Company name is required when employed'
           }
           return true
         },
       },
-    },
-    4: {
-      ...validationRules.financialInfo,
+    }
+  }
+  
+  if (step === 4) {
+    return {
+      ...rules,
       loanAmount: {
         validate: (value) => {
           if (watch('loanStatus') === 'Yes' && (!value || isNaN(value) || parseFloat(value) <= 0)) {
@@ -158,14 +85,8 @@ export const getStepValidationRules = (step, watch) => {
           return true
         },
       },
-    },
-    5: validationRules.preferences,
-    6: {
-      password: validationRules.password,
-      confirmPassword: validationRules.confirmPassword,
-    },
+    }
   }
-
-  return stepRules[step] || {}
+  
+  return rules
 }
-

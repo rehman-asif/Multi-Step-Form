@@ -31,10 +31,7 @@ export const formApi = createApi({
         method: 'PUT',
         body: buildFormData(formData),
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: 'FormSubmission', id },
-        'FormSubmission',
-      ],
+      invalidatesTags: ['FormSubmission'],
     }),
     deleteSubmission: builder.mutation({
       query: (id) => ({
@@ -52,4 +49,3 @@ export const {
   useUpdateSubmissionMutation,
   useDeleteSubmissionMutation,
 } = formApi
-
